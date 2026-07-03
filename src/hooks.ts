@@ -62,28 +62,32 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(
 export function useActiveSection(ids: string[]): string {
   const [active, setActive] = useState(ids[0] ?? "");
   useEffect(() => {
-    const seen = new Map<string, number>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => seen.set(e.target.id, e.intersectionRatio));
-        let best = active;
-        let bestRatio = -1;
-        seen.forEach((ratio, id) => {
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            best = id;
-          }
-        });
-        if (bestRatio > 0) setActive(best);
-      },
-      { threshold: [0.15, 0.4, 0.7], rootMargin: "-20% 0px -55% 0px" }
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      // Active = the last section whose top has scrolled past a line ~35% down
+      // the viewport. This is height-independent, so a tall section (OPERATIONS
+      // has 6 cards) can't be skipped — an intersection-ratio test underweights
+      // tall sections and lags/skips them.
+      const line = window.innerHeight * 0.35;
+      let current = ids[0] ?? "";
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= line) current = id;
+      }
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(compute);
+    };
+    compute();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, [ids.join("|")]);
   return active;
 }
