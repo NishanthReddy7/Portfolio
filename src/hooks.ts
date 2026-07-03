@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { subscribeReveal } from "./reveal-bus";
 
 /* --------------------------------------------------- reduced-motion gate -- */
 export function usePrefersReducedMotion(): boolean {
@@ -24,9 +25,15 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+
+    // navigation can settle this element immediately so jumps land clean
+    const unsub = subscribeReveal((sectionId) => {
+      if (!sectionId || node.closest(`#${sectionId}`)) setShown(true);
+    });
+
     if (typeof IntersectionObserver === "undefined") {
       setShown(true);
-      return;
+      return unsub;
     }
     const io = new IntersectionObserver(
       (entries) => {
@@ -42,7 +49,10 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(
       { threshold, rootMargin: "0px 0px -8% 0px" }
     );
     io.observe(node);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      unsub();
+    };
   }, [threshold, once]);
 
   return { ref, shown };

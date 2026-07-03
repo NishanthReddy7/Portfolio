@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { SECTIONS, IDENTITY } from "../data";
 import { useKey } from "../hooks";
+import { goToSection } from "../nav";
 
 /* Left index rail. Fixed on desktop; slides in as an overlay on mobile.
    Highlights the section currently in the viewport. */
@@ -16,7 +17,7 @@ export default function SideRail({
   useKey("Escape", onClose, open);
 
   const go = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    goToSection(id);
     onClose();
   };
 

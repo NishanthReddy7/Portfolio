@@ -2,6 +2,7 @@ import { ArrowRight, TerminalSquare, Crosshair } from "lucide-react";
 import Radar from "./Radar";
 import { IDENTITY, INTEL } from "../data";
 import { useScramble, useDelayedFlag, usePrefersReducedMotion } from "../hooks";
+import { goToSection } from "../nav";
 
 export default function Hero({ onOpenTerminal }: { onOpenTerminal: () => void }) {
   const reduced = usePrefersReducedMotion();
@@ -9,8 +10,7 @@ export default function Hero({ onOpenTerminal }: { onOpenTerminal: () => void })
   const decrypt = useDelayedFlag(reduced ? 0 : 260);
   const name = useScramble(IDENTITY.handle.toUpperCase(), { play: decrypt && !reduced, speed: 0.9 });
 
-  const scrollTo = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollTo = (id: string) => goToSection(id);
 
   return (
     <section className="hero" aria-label="Introduction">

@@ -12,6 +12,7 @@ import Footer from "./components/Footer";
 import Terminal from "./components/Terminal";
 import { SECTIONS } from "./data";
 import { useActiveSection } from "./hooks";
+import { goToSection } from "./nav";
 
 const SECTION_IDS = SECTIONS.map((s) => s.id);
 
@@ -33,7 +34,7 @@ export default function App() {
   const closeTerm = useCallback(() => setTermOpen(false), []);
 
   const navigate = useCallback((id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    goToSection(id);
   }, []);
 
   // global `~` toggles the terminal, unless the user is typing somewhere
