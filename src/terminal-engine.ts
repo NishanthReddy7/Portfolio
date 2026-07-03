@@ -61,6 +61,14 @@ export const BANNER: Line[] = [
   dim(`  type 'help' for commands · 'exit' to close`),
 ];
 
+/* Narrow-screen banner — the ASCII art above overflows a phone, so mobile
+   gets this compact header instead. */
+export const BANNER_COMPACT: Line[] = [
+  amber("╺━━ NR // OPS ━━╸"),
+  dim("secure shell · dossier console · v1.0"),
+  dim("type 'help' for commands · 'exit' to close"),
+];
+
 function whoami(): Line[] {
   return [
     amber(`${IDENTITY.handle}  —  ${IDENTITY.alias}@ops`),
@@ -125,8 +133,9 @@ function catSection(arg: string): Line[] {
   return [err(`cat: ${arg}: no such section`), dim(`try: ${SECTION_IDS.join(", ")}`)];
 }
 
-/** Execute one line of input. `history` is prior raw commands (newest last). */
-export function runCommand(raw: string, history: string[]): CommandResult {
+/** Execute one line of input. `history` is prior raw commands (newest last).
+ *  `compact` picks the narrow banner for the `banner` command on small screens. */
+export function runCommand(raw: string, history: string[], compact = false): CommandResult {
   const input = raw.trim();
   if (!input) return { lines: [] };
 
@@ -193,7 +202,7 @@ export function runCommand(raw: string, history: string[]): CommandResult {
       return { lines: [], clear: true };
 
     case "banner":
-      return { lines: BANNER };
+      return { lines: compact ? BANNER_COMPACT : BANNER };
 
     case "decrypt":
       return {

@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { X, ChevronRight } from "lucide-react";
-import { runCommand, BANNER, type Line } from "../terminal-engine";
+import { runCommand, BANNER, BANNER_COMPACT, type Line } from "../terminal-engine";
 import { IDENTITY } from "../data";
 import { useKey, useScrollLock } from "../hooks";
 import MatrixRain from "./MatrixRain";
 
 const PROMPT_USER = `${IDENTITY.alias}@ops`;
+
+/* The ASCII-art banner overflows a phone screen; swap in a compact header there. */
+const isCompactViewport = () =>
+  typeof window !== "undefined" && window.matchMedia("(max-width: 560px)").matches;
 
 /* The signature element: a real shell over the dossier. Everything else on the
    page stays quiet so this can be the one loud, playful moment. */
@@ -18,7 +22,9 @@ export default function Terminal({
   onClose: () => void;
   onNavigate: (id: string) => void;
 }) {
-  const [lines, setLines] = useState<Line[]>(BANNER);
+  const [lines, setLines] = useState<Line[]>(() =>
+    isCompactViewport() ? BANNER_COMPACT : BANNER
+  );
   const [value, setValue] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
@@ -48,7 +54,7 @@ export default function Terminal({
     (raw: string) => {
       const echo: Line = { kind: "in", text: raw };
       const nextHistory = raw.trim() ? [...history, raw.trim()] : history;
-      const res = runCommand(raw, history);
+      const res = runCommand(raw, history, isCompactViewport());
 
       if (res.clear) {
         setLines([]);
